@@ -1,0 +1,6 @@
+[submodule "src/FEAST"]
+	path = src/FEAST
+	url = https://github.com/Craigacp/FEAST.git
+[submodule "src/MIToolbox"]
+	path = src/MIToolbox
+	url = https://github.com/Craigacp/MIToolbox.git
