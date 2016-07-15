@@ -1,0 +1,13 @@
+man-roxygen
+.git
+src/MIToolbox/.git
+src/FEAST/.git
+Makefile
+.sh$
+^.git.*
+\.md$
+\.o$
+\.so$
+\.bib$
+\.m$
+src/MIToolbox/demonstration_algorithms
