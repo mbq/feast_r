@@ -1,0 +1,11 @@
+bibentry(bibtype = "Article",
+ title = "Conditional Likelihood Maximisation: A Unifying Framework for Information Theoretic Feature Selection",
+ author = c(person("Gavin", "Brown"),
+    person("Adam", "Pocock"),
+    person("Ming-Jie", "Zhao"),
+    person("Mikel", "Lujan")),
+ journal = "Journal of Machine Learning Research",
+ number="13",
+ pages="27-66",
+ year = 2012,
+ url = "http://jmlr.csail.mit.edu/papers/volume13/brown12a/brown12a.pdf")
