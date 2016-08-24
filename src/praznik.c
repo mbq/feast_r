@@ -8,10 +8,14 @@
 #define __FSToolbox_H
 #define __MIToolbox_H
 
-// ...kill exit and fprintf (only used for alloc failure)...
+// ...kill exit...
+#define exit(a) //Noop
+//...fprintf (only used for alloc failure)...
 #undef fprintf
 #define fprintf(a,b,c) //Noop
-#define exit(a) //Noop
+//...and printf (in MIToolbox)
+#undef printf
+#define printf(a,b,c) //Noop
 
 // ...yet duplicate what they define...
 #define COMPILE_C 1
