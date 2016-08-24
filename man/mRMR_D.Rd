@@ -14,7 +14,7 @@ mRMR_D(X, Y, k)
 \item{k}{Number of attributes to select; first element will be used. Must not exceed \code{ncol(X)}.}
 }
 \value{
-A list of names of the selected features.
+A vector of names of the selected features; note that it may be shorter than \code{k}, but should always contain at least one feature.
 }
 \description{
 Minimum Relevance Maximum Redundancy selection using the difference variant by H. Peng et al.
