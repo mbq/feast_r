@@ -8,6 +8,6 @@ src/FEAST/*.md
 src/FEAST/FSToolboxMex.c
 src/MIToolbox/*.md
 src/MIToolbox/demonstration_algorithms
-src/MIToolbox/MIToolbox*
+src/MIToolbox/MIToolboxMex.c
 src/MIToolbox/Renyi*
 src/MIToolbox/Weighted*
