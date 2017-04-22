@@ -18,7 +18,7 @@ BetaGamma(X, Y, k, beta, gamma)
 \item{gamma}{Gamma parameter; see the reference for details.}
 }
 \value{
-A vector of names of the selected features; note that it may be shorter than \code{k}, but should always contain at least one feature.
+A list with two elements: \code{selection}, a vector of names of the selected features (note that it may be shorter than \code{k}), and \code{scores}, a vector of feature scores.
 }
 \description{
 Generic selector using the Beta-Gamma space by Brown et al.
@@ -29,4 +29,3 @@ BetaGamma(data.frame(lapply(iris[,-5],cut,10)),iris[,5],4,0.1,0.1)
 \references{
 "Conditional Likelihood Maximisation: A Unifying Framework for Mutual Information Feature Selection" G. Brown, A. Pocock, M.-J. Zhao, M. Lujan, JMLR (2011)
 }
-

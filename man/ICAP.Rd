@@ -14,7 +14,7 @@ ICAP(X, Y, k)
 \item{k}{Number of attributes to select; first element will be used. Must not exceed \code{ncol(X)}.}
 }
 \value{
-A vector of names of the selected features; note that it may be shorter than \code{k}, but should always contain at least one feature.
+A list with two elements: \code{selection}, a vector of names of the selected features (note that it may be shorter than \code{k}), and \code{scores}, a vector of feature scores.
 }
 \description{
 Interaction Capping selction.
@@ -25,4 +25,3 @@ ICAP(data.frame(lapply(iris[,-5],cut,10)),iris[,5],4)
 \references{
 "Machine Learning Based on Attribute Interactions" A. Jakulin, PhD Thesis (2005)
 }
-
