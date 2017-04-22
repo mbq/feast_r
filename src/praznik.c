@@ -8,14 +8,10 @@
 #define __FSToolbox_H
 #define __MIToolbox_H
 
-// ...kill exit...
-#define exit(a) //Noop
-//...fprintf (only used for alloc failure)...
+// ...kill exit and fprintf (only used for alloc failure)...
 #undef fprintf
-#define fprintf(a,b,c) //Noop
-//...and printf (in MIToolbox)
-#undef printf
-#define printf(a,b,c) //Noop
+#define fprintf(...) //Noop
+#define exit(a) //Noop
 
 // ...yet duplicate what they define...
 #define COMPILE_C 1
@@ -30,21 +26,21 @@
 #define FREE_FUNC(a) Free((a))
 
 // ...finally, statically inline all the required code.
-#include "FEAST/mRMR_D.c"
-#include "FEAST/CMIM.c"
-#include "FEAST/JMI.c"
-#include "FEAST/DISR.c"
-#include "FEAST/ICAP.c"
-#include "FEAST/CondMI.c"
-#include "FEAST/MIM.c"
-#include "FEAST/BetaGamma.c"
-#include "MIToolbox/ArrayOperations.c"
-#include "MIToolbox/MutualInformation.c"
-#include "MIToolbox/CalculateProbability.c"
-#include "MIToolbox/Entropy.c"
+#include "FEAST/src/mRMR_D.c"
+#include "FEAST/src/CMIM.c"
+#include "FEAST/src/JMI.c"
+#include "FEAST/src/DISR.c"
+#include "FEAST/src/ICAP.c"
+#include "FEAST/src/CondMI.c"
+#include "FEAST/src/MIM.c"
+#include "FEAST/src/BetaGamma.c"
+#include "MIToolbox/src/ArrayOperations.c"
+#include "MIToolbox/src/MutualInformation.c"
+#include "MIToolbox/src/CalculateProbability.c"
+#include "MIToolbox/src/Entropy.c"
 
 //Shared code to validate input
-void processInput(SEXP k,SEXP X,SEXP Y,int *numSel,int *nObj,int *nAtt){
+void processInput(SEXP k,SEXP X,SEXP Y,int *numSel,int *nObj,int *nAtt,uint ***x){
  numSel[0]=INTEGER(k)[0];
  SEXP dimX=getAttrib(X,R_DimSymbol);
  nObj[0]=INTEGER(dimX)[0];
@@ -53,98 +49,153 @@ void processInput(SEXP k,SEXP X,SEXP Y,int *numSel,int *nObj,int *nAtt){
  nAtt[0]=INTEGER(dimX)[1];
  if(numSel[0]>nAtt[0])
   error("You cannot select more than features than the set has.");
+
+ //Populate the column map
+ x[0]=(uint**)Calloc(nAtt[0],uint*);
+ for(int e=0;e<nAtt[0];e++)
+  x[0][e]=((uint*)INTEGER(X))+(nObj[0]*e);
 }
 
 //Interfaces to the FEAST-implemented algorithms
 SEXP C_mRMR(SEXP k,SEXP X,SEXP Y){
  int numSel,nObj,nAtt;
- processInput(k,X,Y,&numSel,&nObj,&nAtt);
- SEXP Ans; PROTECT(Ans=allocVector(REALSXP,numSel));
+ uint **x;
+ processInput(k,X,Y,&numSel,&nObj,&nAtt,&x);
 
- mRMR_D(numSel,nObj,nAtt,REAL(X),REAL(Y),REAL(Ans));
+ //Init place for the results
+ SEXP Ans; PROTECT(Ans=allocVector(VECSXP,2));
+ SEXP Sel; PROTECT(Sel=allocVector(INTSXP,numSel));
+ SET_VECTOR_ELT(Ans,0,Sel);
+ SEXP Score; PROTECT(Score=allocVector(REALSXP,numSel));
+ SET_VECTOR_ELT(Ans,1,Score);
 
- UNPROTECT(1);
+ mRMR_D(numSel,nObj,nAtt,x,INTEGER(Y),INTEGER(Sel),REAL(Score));
+
+ Free(x);
+ UNPROTECT(3);
  return(Ans);
 }
 
-SEXP C_CMIM(SEXP k,SEXP X,SEXP Y,...){
+SEXP C_CMIM(SEXP k,SEXP X,SEXP Y){
  int numSel,nObj,nAtt;
- processInput(k,X,Y,&numSel,&nObj,&nAtt);
- SEXP Ans; PROTECT(Ans=allocVector(REALSXP,numSel));
+ uint **x;
+ processInput(k,X,Y,&numSel,&nObj,&nAtt,&x);
 
- CMIM(numSel,nObj,nAtt,REAL(X),REAL(Y),REAL(Ans));
+ SEXP Ans; PROTECT(Ans=allocVector(VECSXP,2));
+ SEXP Sel; PROTECT(Sel=allocVector(INTSXP,numSel));
+ SET_VECTOR_ELT(Ans,0,Sel);
+ SEXP Score; PROTECT(Score=allocVector(REALSXP,numSel));
+ SET_VECTOR_ELT(Ans,1,Score);
 
- UNPROTECT(1);
+ CMIM(numSel,nObj,nAtt,x,INTEGER(Y),INTEGER(Sel),REAL(Score));
+
+ UNPROTECT(3);
  return(Ans);
 }
 
 SEXP C_JMI(SEXP k,SEXP X,SEXP Y){
  int numSel,nObj,nAtt;
- processInput(k,X,Y,&numSel,&nObj,&nAtt);
- SEXP Ans; PROTECT(Ans=allocVector(REALSXP,numSel));
+ uint **x;
+ processInput(k,X,Y,&numSel,&nObj,&nAtt,&x);
 
- JMI(numSel,nObj,nAtt,REAL(X),REAL(Y),REAL(Ans));
+ SEXP Ans; PROTECT(Ans=allocVector(VECSXP,2));
+ SEXP Sel; PROTECT(Sel=allocVector(INTSXP,numSel));
+ SET_VECTOR_ELT(Ans,0,Sel);
+ SEXP Score; PROTECT(Score=allocVector(REALSXP,numSel));
+ SET_VECTOR_ELT(Ans,1,Score);
 
- UNPROTECT(1);
+ JMI(numSel,nObj,nAtt,x,INTEGER(Y),INTEGER(Sel),REAL(Score));
+
+ UNPROTECT(3);
  return(Ans);
 }
 
 SEXP C_DISR(SEXP k,SEXP X,SEXP Y){
  int numSel,nObj,nAtt;
- processInput(k,X,Y,&numSel,&nObj,&nAtt);
- SEXP Ans; PROTECT(Ans=allocVector(REALSXP,numSel));
+ uint **x;
+ processInput(k,X,Y,&numSel,&nObj,&nAtt,&x);
 
- DISR(numSel,nObj,nAtt,REAL(X),REAL(Y),REAL(Ans));
+ SEXP Ans; PROTECT(Ans=allocVector(VECSXP,2));
+ SEXP Sel; PROTECT(Sel=allocVector(INTSXP,numSel));
+ SET_VECTOR_ELT(Ans,0,Sel);
+ SEXP Score; PROTECT(Score=allocVector(REALSXP,numSel));
+ SET_VECTOR_ELT(Ans,1,Score);
 
- UNPROTECT(1);
+ DISR(numSel,nObj,nAtt,x,INTEGER(Y),INTEGER(Sel),REAL(Score));
+
+ UNPROTECT(3);
  return(Ans);
 }
 
 SEXP C_ICAP(SEXP k,SEXP X,SEXP Y){
  int numSel,nObj,nAtt;
- processInput(k,X,Y,&numSel,&nObj,&nAtt);
- SEXP Ans; PROTECT(Ans=allocVector(REALSXP,numSel));
+ uint **x;
+ processInput(k,X,Y,&numSel,&nObj,&nAtt,&x);
 
- ICAP(numSel,nObj,nAtt,REAL(X),REAL(Y),REAL(Ans));
+ SEXP Ans; PROTECT(Ans=allocVector(VECSXP,2));
+ SEXP Sel; PROTECT(Sel=allocVector(INTSXP,numSel));
+ SET_VECTOR_ELT(Ans,0,Sel);
+ SEXP Score; PROTECT(Score=allocVector(REALSXP,numSel));
+ SET_VECTOR_ELT(Ans,1,Score);
 
- UNPROTECT(1);
+ ICAP(numSel,nObj,nAtt,x,INTEGER(Y),INTEGER(Sel),REAL(Score));
+
+ UNPROTECT(3);
  return(Ans);
 }
 
 SEXP C_CondMI(SEXP k,SEXP X,SEXP Y){
  int numSel,nObj,nAtt;
- processInput(k,X,Y,&numSel,&nObj,&nAtt);
- SEXP Ans; PROTECT(Ans=allocVector(REALSXP,numSel));
+ uint **x;
+ processInput(k,X,Y,&numSel,&nObj,&nAtt,&x);
 
- CondMI(numSel,nObj,nAtt,REAL(X),REAL(Y),REAL(Ans));
+ SEXP Ans; PROTECT(Ans=allocVector(VECSXP,2));
+ SEXP Sel; PROTECT(Sel=allocVector(INTSXP,numSel));
+ SET_VECTOR_ELT(Ans,0,Sel);
+ SEXP Score; PROTECT(Score=allocVector(REALSXP,numSel));
+ SET_VECTOR_ELT(Ans,1,Score);
 
- UNPROTECT(1);
+ CondMI(numSel,nObj,nAtt,x,INTEGER(Y),INTEGER(Sel),REAL(Score));
+
+ UNPROTECT(3);
  return(Ans);
 }
 
 SEXP C_MIM(SEXP k,SEXP X,SEXP Y){
  int numSel,nObj,nAtt;
- processInput(k,X,Y,&numSel,&nObj,&nAtt);
- SEXP Ans; PROTECT(Ans=allocVector(REALSXP,numSel));
+ uint **x;
+ processInput(k,X,Y,&numSel,&nObj,&nAtt,&x);
 
- MIM(numSel,nObj,nAtt,REAL(X),REAL(Y),REAL(Ans));
+ SEXP Ans; PROTECT(Ans=allocVector(VECSXP,2));
+ SEXP Sel; PROTECT(Sel=allocVector(INTSXP,numSel));
+ SET_VECTOR_ELT(Ans,0,Sel);
+ SEXP Score; PROTECT(Score=allocVector(REALSXP,numSel));
+ SET_VECTOR_ELT(Ans,1,Score);
 
- UNPROTECT(1);
+ MIM(numSel,nObj,nAtt,x,INTEGER(Y),INTEGER(Sel),REAL(Score));
+
+ UNPROTECT(3);
  return(Ans);
 }
 
 SEXP C_BetaGamma(SEXP k,SEXP X,SEXP Y,SEXP bg){
  int numSel,nObj,nAtt;
- processInput(k,X,Y,&numSel,&nObj,&nAtt);
+ uint **x;
+ processInput(k,X,Y,&numSel,&nObj,&nAtt,&x);
+
  if(length(bg)!=2)
   error("Incorrect beta-gamma parameter!");
  double *betaGamma=REAL(bg);
 
- SEXP Ans; PROTECT(Ans=allocVector(REALSXP,numSel));
+ SEXP Ans; PROTECT(Ans=allocVector(VECSXP,2));
+ SEXP Sel; PROTECT(Sel=allocVector(INTSXP,numSel));
+ SET_VECTOR_ELT(Ans,0,Sel);
+ SEXP Score; PROTECT(Score=allocVector(REALSXP,numSel));
+ SET_VECTOR_ELT(Ans,1,Score);
 
- BetaGamma(numSel,nObj,nAtt,REAL(X),REAL(Y),REAL(Ans),
+ BetaGamma(numSel,nObj,nAtt,x,INTEGER(Y),INTEGER(Sel),REAL(Score),
   betaGamma[0],betaGamma[1]);
 
- UNPROTECT(1);
+ UNPROTECT(3);
  return(Ans);
 }

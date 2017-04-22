@@ -9,7 +9,7 @@
 ** Created 17/2/2010
 ** Updated - 22/02/2014 - Added checking on calloc, and an increment array function.
 **
-**  Copyright 2010,2014 Adam Pocock, The University Of Manchester
+**  Copyright 2010-2017 Adam Pocock, The University Of Manchester
 **  www.cs.manchester.ac.uk
 **
 **  This file is part of MIToolbox, licensed under the 3-clause BSD license.
@@ -17,6 +17,8 @@
 
 #ifndef __ArrayOperations_H
 #define __ArrayOperations_H
+
+#include "MIToolbox/MIToolbox.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,6 +39,18 @@ void incrementVector(double* vector, int vectorLength);
 *******************************************************************************/
 void printDoubleVector(double *vector, int vectorlength);
 void printIntVector(int *vector, int vectorLength);
+void printUintVector(uint *vector, int vectorLength);
+
+/*******************************************************************************
+** Generates a 2D representation of a contiguous fortran style matrix
+*******************************************************************************/
+uint **generateIntIndices(uint *featureMatrix, uint noOfSamples, uint noOfFeatures);
+double **generateDoubleIndices(double *featureMatrix, uint noOfSamples, uint noOfFeatures);
+
+/*******************************************************************************
+** Finds the maximum state of an int array.
+*******************************************************************************/
+int maxState(uint* vector, int vectorLength);
 
 /*******************************************************************************
 ** numberOfUniqueValues finds the number of unique values in an array by 
@@ -54,7 +68,7 @@ int numberOfUniqueValues(double *featureVector, int vectorLength);
 ** length(inputVector) == length(outputVector) == vectorLength otherwise there
 ** is a memory leak
 *******************************************************************************/
-int normaliseArray(double *inputVector, int *outputVector, int vectorLength);
+int normaliseArray(double *inputVector, uint *outputVector, int vectorLength);
 
 /*******************************************************************************
 ** mergeArrays takes in two arrays and writes the joint state of those arrays
@@ -62,8 +76,10 @@ int normaliseArray(double *inputVector, int *outputVector, int vectorLength);
 **
 ** the length of the vectors must be the same and equal to vectorLength
 *******************************************************************************/
-int mergeArrays(double *firstVector, double *secondVector, double *outputVector, int vectorLength);
-int mergeArraysArities(double *firstVector, int numFirstStates, double *secondVector, int numSecondStates, double *outputVector, int vectorLength);
+int mergeArrays(uint *firstVector, uint *secondVector, uint *outputVector, int vectorLength);
+int discAndMergeArrays(double *firstVector, double *secondVector, uint *outputVector, int vectorLength);
+int mergeArraysArities(uint *firstVector, int numFirstStates, uint *secondVector, int numSecondStates, uint *outputVector, int vectorLength);
+int discAndMergeArraysArities(double *firstVector, int numFirstStates, double *secondVector, int numSecondStates, uint *outputVector, int vectorLength);
 
 /*******************************************************************************
 ** mergeMultipleArrays takes in a matrix and repeatedly merges the matrix using 
@@ -73,8 +89,8 @@ int mergeArraysArities(double *firstVector, int numFirstStates, double *secondVe
 ** the length of the vectors must be the same and equal to vectorLength
 ** matrixWidth = the number of columns in the matrix
 *******************************************************************************/
-int mergeMultipleArrays(double *inputMatrix, double *outputVector, int matrixWidth, int vectorLength);
-int mergeMultipleArraysArities(double *inputMatrix, double *outputVector, int matrixWidth, int *arities, int vectorLength);
+int mergeMultipleArrays(double *inputMatrix, uint *outputVector, int matrixWidth, int vectorLength);
+int mergeMultipleArraysArities(double *inputMatrix, uint *outputVector, int matrixWidth, int *arities, int vectorLength);
 
 #ifdef __cplusplus
 }

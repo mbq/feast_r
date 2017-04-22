@@ -14,7 +14,7 @@ mRMR_D(X, Y, k)
 \item{k}{Number of attributes to select; first element will be used. Must not exceed \code{ncol(X)}.}
 }
 \value{
-A vector of names of the selected features; note that it may be shorter than \code{k}, but should always contain at least one feature.
+A list with two elements: \code{selection}, a vector of names of the selected features (note that it may be shorter than \code{k}), and \code{scores}, a vector of feature scores.
 }
 \description{
 Minimum Relevance Maximum Redundancy selection using the difference variant by H. Peng et al.
@@ -25,4 +25,3 @@ mRMR_D(data.frame(lapply(iris[,-5],cut,10)),iris[,5],4)
 \references{
 "Feature Selection Based on Mutual Information: Criteria of Max-Dependency, Max-Relevance, and Min-Redundancy" H. Peng et al. IEEE Pattern Analysis and Machine Intelligence (PAMI) (2005)
 }
-

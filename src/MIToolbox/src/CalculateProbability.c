@@ -10,20 +10,17 @@
 ** Modified - 04/07/2011 - added weighted probability functions
 ** Updated - 22/02/2014 - Added checking on calloc.
 **
-** Copyright 2010-2014 Adam Pocock, The University Of Manchester
+** Copyright 2010-2017 Adam Pocock, The University Of Manchester
 ** www.cs.manchester.ac.uk
 **
 ** This file is part of MIToolbox, licensed under the 3-clause BSD license.
 *******************************************************************************/
 
-#include "MIToolbox.h"
-#include "ArrayOperations.h"
-#include "CalculateProbability.h"
+#include "MIToolbox/MIToolbox.h"
+#include "MIToolbox/ArrayOperations.h"
+#include "MIToolbox/CalculateProbability.h"
 
-JointProbabilityState calculateJointProbability(double *firstVector, double *secondVector, int vectorLength)
-{
-  int *firstNormalisedVector;
-  int *secondNormalisedVector;
+JointProbabilityState calculateJointProbability(uint *firstVector, uint *secondVector, int vectorLength) {
   int *firstStateCounts;
   int *secondStateCounts;
   int *jointStateCounts;
@@ -37,11 +34,8 @@ JointProbabilityState calculateJointProbability(double *firstVector, double *sec
   double length = vectorLength;
   JointProbabilityState state;
 
-  firstNormalisedVector = (int *) checkedCalloc(vectorLength,sizeof(int));
-  secondNormalisedVector = (int *) checkedCalloc(vectorLength,sizeof(int));
-  
-  firstNumStates = normaliseArray(firstVector,firstNormalisedVector,vectorLength);
-  secondNumStates = normaliseArray(secondVector,secondNormalisedVector,vectorLength);
+  firstNumStates = maxState(firstVector,vectorLength);
+  secondNumStates = maxState(secondVector,vectorLength);
   jointNumStates = firstNumStates * secondNumStates;
   
   firstStateCounts = (int *) checkedCalloc(firstNumStates,sizeof(int));
@@ -52,48 +46,29 @@ JointProbabilityState calculateJointProbability(double *firstVector, double *sec
   secondStateProbs = (double *) checkedCalloc(secondNumStates,sizeof(double));
   jointStateProbs = (double *) checkedCalloc(jointNumStates,sizeof(double));
     
-  /* optimised version, less numerically stable
-  double fractionalState = 1.0 / vectorLength;
-  
-  for (i = 0; i < vectorLength; i++)
-  {
-    firstStateProbs[firstNormalisedVector[i]] += fractionalState;
-    secondStateProbs[secondNormalisedVector[i]] += fractionalState;
-    jointStateProbs[secondNormalisedVector[i] * firstNumStates + firstNormalisedVector[i]] += fractionalState;
-  }
-  */
-  
   /* Optimised for number of FP operations now O(states) instead of O(vectorLength) */
-  for (i = 0; i < vectorLength; i++)
-  {
-    firstStateCounts[firstNormalisedVector[i]] += 1;
-    secondStateCounts[secondNormalisedVector[i]] += 1;
-    jointStateCounts[secondNormalisedVector[i] * firstNumStates + firstNormalisedVector[i]] += 1;
+  for (i = 0; i < vectorLength; i++) {
+    firstStateCounts[firstVector[i]] += 1;
+    secondStateCounts[secondVector[i]] += 1;
+    jointStateCounts[secondVector[i] * firstNumStates + firstVector[i]] += 1;
   }
   
-  for (i = 0; i < firstNumStates; i++)
-  {
+  for (i = 0; i < firstNumStates; i++) {
     firstStateProbs[i] = firstStateCounts[i] / length;
   }
   
-  for (i = 0; i < secondNumStates; i++)
-  {
+  for (i = 0; i < secondNumStates; i++) {
     secondStateProbs[i] = secondStateCounts[i] / length;
   }
   
-  for (i = 0; i < jointNumStates; i++)
-  {
+  for (i = 0; i < jointNumStates; i++) {
     jointStateProbs[i] = jointStateCounts[i] / length;
   }
 
-  FREE_FUNC(firstNormalisedVector);
-  FREE_FUNC(secondNormalisedVector);
   FREE_FUNC(firstStateCounts);
   FREE_FUNC(secondStateCounts);
   FREE_FUNC(jointStateCounts);
-    
-  firstNormalisedVector = NULL;
-  secondNormalisedVector = NULL;
+
   firstStateCounts = NULL;
   secondStateCounts = NULL;
   jointStateCounts = NULL;
@@ -118,12 +93,28 @@ JointProbabilityState calculateJointProbability(double *firstVector, double *sec
   state.numSecondStates = secondNumStates;
 
   return state;
-}/*calculateJointProbability(double *,double *, int)*/
+}/*calcJointProbability(uint *,uint *, int)*/
 
-WeightedJointProbState calculateWeightedJointProbability(double *firstVector, double *secondVector, double *weightVector, int vectorLength)
-{
-  int *firstNormalisedVector;
-  int *secondNormalisedVector;
+JointProbabilityState discAndCalcJointProbability(double *firstVector, double *secondVector, int vectorLength) {
+  uint *firstNormalisedVector = (uint *) checkedCalloc(vectorLength,sizeof(uint));
+  uint *secondNormalisedVector = (uint *) checkedCalloc(vectorLength,sizeof(uint));
+  JointProbabilityState state;
+  
+  normaliseArray(firstVector,firstNormalisedVector,vectorLength);
+  normaliseArray(secondVector,secondNormalisedVector,vectorLength);
+
+  state = calculateJointProbability(firstNormalisedVector,secondNormalisedVector,vectorLength);
+
+  FREE_FUNC(firstNormalisedVector);
+  FREE_FUNC(secondNormalisedVector);
+    
+  firstNormalisedVector = NULL;
+  secondNormalisedVector = NULL;
+
+  return state;
+}/*discAndCalcJointProbability(double *,double *, int)*/
+
+WeightedJointProbState calculateWeightedJointProbability(uint *firstVector, uint *secondVector, double *weightVector, int vectorLength) {
   int *firstStateCounts;
   int *secondStateCounts;
   int *jointStateCounts;
@@ -140,11 +131,8 @@ WeightedJointProbState calculateWeightedJointProbability(double *firstVector, do
   double length = vectorLength;
   WeightedJointProbState state;
 
-  firstNormalisedVector = (int *) checkedCalloc(vectorLength,sizeof(int));
-  secondNormalisedVector = (int *) checkedCalloc(vectorLength,sizeof(int));
-  
-  firstNumStates = normaliseArray(firstVector,firstNormalisedVector,vectorLength);
-  secondNumStates = normaliseArray(secondVector,secondNormalisedVector,vectorLength);
+  firstNumStates = maxState(firstVector,vectorLength);
+  secondNumStates = maxState(secondVector,vectorLength);
   jointNumStates = firstNumStates * secondNumStates;
   
   firstStateCounts = (int *) checkedCalloc(firstNumStates,sizeof(int));
@@ -159,52 +147,41 @@ WeightedJointProbState calculateWeightedJointProbability(double *firstVector, do
   secondWeightVec = (double *) checkedCalloc(secondNumStates,sizeof(double));
   jointWeightVec = (double *) checkedCalloc(jointNumStates,sizeof(double));
     
-  for (i = 0; i < vectorLength; i++)
-  {
-    firstStateCounts[firstNormalisedVector[i]] += 1;
-    secondStateCounts[secondNormalisedVector[i]] += 1;
-    jointStateCounts[secondNormalisedVector[i] * firstNumStates + firstNormalisedVector[i]] += 1;
+  for (i = 0; i < vectorLength; i++) {
+    firstStateCounts[firstVector[i]] += 1;
+    secondStateCounts[secondVector[i]] += 1;
+    jointStateCounts[secondVector[i] * firstNumStates + firstVector[i]] += 1;
 
-    firstWeightVec[firstNormalisedVector[i]] += weightVector[i];
-    secondWeightVec[secondNormalisedVector[i]] += weightVector[i];
-    jointWeightVec[secondNormalisedVector[i] * firstNumStates + firstNormalisedVector[i]] += weightVector[i];
+    firstWeightVec[firstVector[i]] += weightVector[i];
+    secondWeightVec[secondVector[i]] += weightVector[i];
+    jointWeightVec[secondVector[i] * firstNumStates + firstVector[i]] += weightVector[i];
   }
   
-  for (i = 0; i < firstNumStates; i++)
-  {
-    if (firstStateCounts[i])
-    {
+  for (i = 0; i < firstNumStates; i++) {
+    if (firstStateCounts[i]) {
       firstStateProbs[i] = firstStateCounts[i] / length;
       firstWeightVec[i] /= firstStateCounts[i];
     }
   }
   
-  for (i = 0; i < secondNumStates; i++)
-  {
-    if (secondStateCounts[i])
-    {
+  for (i = 0; i < secondNumStates; i++) {
+    if (secondStateCounts[i]) {
       secondStateProbs[i] = secondStateCounts[i] / length;
       secondWeightVec[i] /= secondStateCounts[i];
     }
   }
   
-  for (i = 0; i < jointNumStates; i++)
-  {
-    if (jointStateCounts[i])
-    {
+  for (i = 0; i < jointNumStates; i++) {
+    if (jointStateCounts[i]) {
       jointStateProbs[i] = jointStateCounts[i] / length;
       jointWeightVec[i] /= jointStateCounts[i];
     }
   }
 
-  FREE_FUNC(firstNormalisedVector);
-  FREE_FUNC(secondNormalisedVector);
   FREE_FUNC(firstStateCounts);
   FREE_FUNC(secondStateCounts);
   FREE_FUNC(jointStateCounts);
     
-  firstNormalisedVector = NULL;
-  secondNormalisedVector = NULL;
   firstStateCounts = NULL;
   secondStateCounts = NULL;
   jointStateCounts = NULL;
@@ -235,99 +212,151 @@ WeightedJointProbState calculateWeightedJointProbability(double *firstVector, do
   state.numSecondStates = secondNumStates;
 
   return state;
-}/*calculateJointProbability(double *,double *, int)*/
+}
 
-ProbabilityState calculateProbability(double *dataVector, int vectorLength)
-{
-  int *normalisedVector;
+WeightedJointProbState discAndCalcWeightedJointProbability(double *firstVector, double *secondVector, double *weightVector, int vectorLength) {
+  uint *firstNormalisedVector = (uint *) checkedCalloc(vectorLength,sizeof(uint));
+  uint *secondNormalisedVector = (uint *) checkedCalloc(vectorLength,sizeof(uint));
+  WeightedJointProbState state;
+  
+  normaliseArray(firstVector,firstNormalisedVector,vectorLength);
+  normaliseArray(secondVector,secondNormalisedVector,vectorLength);
+  
+  state = calculateWeightedJointProbability(firstNormalisedVector,secondNormalisedVector,weightVector,vectorLength);
+  FREE_FUNC(firstNormalisedVector);
+  FREE_FUNC(secondNormalisedVector);
+    
+  firstNormalisedVector = NULL;
+  secondNormalisedVector = NULL;
+
+  return state;
+}/*discAndCalcWeightedJointProbability(double *,double *,double *,int)*/
+
+ProbabilityState calculateProbability(uint* dataVector, int vectorLength) {
+  int numStates;
   int *stateCounts;
   double *stateProbs;
-  int numStates;
-  /*double fractionalState;*/
   ProbabilityState state;
   int i;
   double length = vectorLength;
 
-  normalisedVector = (int *) checkedCalloc(vectorLength,sizeof(int));
-  
-  numStates = normaliseArray(dataVector,normalisedVector,vectorLength);
+  numStates = maxState(dataVector,vectorLength);
   
   stateCounts = (int *) checkedCalloc(numStates,sizeof(int));
   stateProbs = (double *) checkedCalloc(numStates,sizeof(double));
   
-  /* optimised version, may have floating point problems 
-  fractionalState = 1.0 / vectorLength;
-  
-  for (i = 0; i < vectorLength; i++)
-  {
-    stateProbs[normalisedVector[i]] += fractionalState;
-  }
-  */
-  
   /* Optimised for number of FP operations now O(states) instead of O(vectorLength) */
-  for (i = 0; i < vectorLength; i++)
-  {
-    stateCounts[normalisedVector[i]] += 1;
+  for (i = 0; i < vectorLength; i++) {
+    stateCounts[dataVector[i]] += 1;
   }
   
-  for (i = 0; i < numStates; i++)
-  {
+  for (i = 0; i < numStates; i++) {
     stateProbs[i] = stateCounts[i] / length;
   }
   
   FREE_FUNC(stateCounts);
-  FREE_FUNC(normalisedVector);
-  
   stateCounts = NULL;
-  normalisedVector = NULL;
   
   state.probabilityVector = stateProbs;
   state.numStates = numStates;
 
   return state;
-}/*calculateProbability(double *,int)*/
+}
+
+ProbabilityState discAndCalcProbability(double *dataVector, int vectorLength) {
+  ProbabilityState state;
+  uint *normalisedVector = (uint *) checkedCalloc(vectorLength,sizeof(uint));
+  
+  normaliseArray(dataVector,normalisedVector,vectorLength);
+  
+  state = calculateProbability(normalisedVector,vectorLength);
+
+  FREE_FUNC(normalisedVector);
+  normalisedVector = NULL;
+
+  return state;
+}/*discAndCalcProbability(double *,int)*/
 
 
-WeightedProbState calculateWeightedProbability(double *dataVector, double *exampleWeightVector, int vectorLength)
-{
-  int *normalisedVector;
+WeightedProbState calculateWeightedProbability(uint *dataVector, double *weightVector, int vectorLength) {
   int *stateCounts;
   double *stateProbs;
   double *stateWeights;
-  int numStates;
+  int numStates, i;
   WeightedProbState state;
-  int i;
   double length = vectorLength;
-
-  normalisedVector = (int *) checkedCalloc(vectorLength,sizeof(int));
   
-  numStates = normaliseArray(dataVector,normalisedVector,vectorLength);
+  numStates = maxState(dataVector,vectorLength);
   
   stateCounts = (int *) checkedCalloc(numStates,sizeof(int));
   stateProbs = (double *) checkedCalloc(numStates,sizeof(double));
   stateWeights = (double *) checkedCalloc(numStates,sizeof(double));
 
-  for (i = 0; i < vectorLength; i++)
-  {
-    stateCounts[normalisedVector[i]] += 1;
-    stateWeights[normalisedVector[i]] += exampleWeightVector[i];
+  for (i = 0; i < vectorLength; i++) {
+    stateCounts[dataVector[i]] += 1;
+    stateWeights[dataVector[i]] += weightVector[i];
   }
   
-  for (i = 0; i < numStates; i++)
-  {
+  for (i = 0; i < numStates; i++) {
     stateProbs[i] = stateCounts[i] / length;
     stateWeights[i] /= stateCounts[i];
   }
   
   FREE_FUNC(stateCounts);
-  FREE_FUNC(normalisedVector);
-  
   stateCounts = NULL;
-  normalisedVector = NULL;
   
   state.probabilityVector = stateProbs;
   state.stateWeightVector = stateWeights;
   state.numStates = numStates;
 
   return state;
-}/*calculateProbability(double *,int)*/
+}/*calculateWeightedProbability(int *, double *, int)*/
+
+WeightedProbState discAndCalcWeightedProbability(double *dataVector, double *weightVector, int vectorLength) {
+  WeightedProbState state;
+  uint *normalisedVector = (uint *) checkedCalloc(vectorLength,sizeof(uint));
+  normaliseArray(dataVector,normalisedVector,vectorLength);
+  
+  state = calculateWeightedProbability(normalisedVector,weightVector,vectorLength);
+  
+  FREE_FUNC(normalisedVector);
+  normalisedVector = NULL;
+
+  return state;
+}/*discAndCalcWeightedProbability(double *, double *, int)*/
+
+void freeProbabilityState(ProbabilityState state) {
+    FREE_FUNC(state.probabilityVector);
+    state.probabilityVector = NULL;
+}
+
+void freeJointProbabilityState(JointProbabilityState state) {
+    FREE_FUNC(state.firstProbabilityVector);
+    state.firstProbabilityVector = NULL;
+    FREE_FUNC(state.secondProbabilityVector);
+    state.secondProbabilityVector = NULL;
+    FREE_FUNC(state.jointProbabilityVector);
+    state.jointProbabilityVector = NULL;
+}
+
+void freeWeightedProbState(WeightedProbState state) {
+  FREE_FUNC(state.probabilityVector);
+  state.probabilityVector = NULL;
+  FREE_FUNC(state.stateWeightVector);
+  state.stateWeightVector = NULL;
+}
+
+void freeWeightedJointProbState(WeightedJointProbState state) {
+  FREE_FUNC(state.firstProbabilityVector);
+  state.firstProbabilityVector = NULL;
+  FREE_FUNC(state.secondProbabilityVector);
+  state.secondProbabilityVector = NULL;
+  FREE_FUNC(state.jointProbabilityVector);
+  state.jointProbabilityVector = NULL;
+  FREE_FUNC(state.firstWeightVector);
+  state.firstWeightVector = NULL;
+  FREE_FUNC(state.secondWeightVector);
+  state.secondWeightVector = NULL;
+  FREE_FUNC(state.jointWeightVector);
+  state.jointWeightVector = NULL;
+}

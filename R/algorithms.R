@@ -1,6 +1,7 @@
 fixX<-function(X){
  #Convert matrices into data.frame
- if(is.matrix(X)) X<-as.data.frame(X);
+ if(is.matrix(X)) X<-as.data.frame(X)
+ nam<-names(X)
  if(!is.data.frame(X)) stop("X must be matrix-alike with factors or logical colums.");
  for(e in which(sapply(X,is.logical))){
   X[[e]]<-factor(X[[e]]);
@@ -9,17 +10,22 @@ fixX<-function(X){
   stop("Every attribute in X must be factor or logical.");
  if(any(is.na(X)))
   stop("NAs not allowed in X.")
- sapply(X,function(x) as.numeric(as.integer(x)))->X;
+ #0-based integers
+ sapply(X,function(x) as.integer(x)-1L)->X
+ dim(X)->dX
+ as.integer(X)->X
+ dim(X)<-dX
+ colnames(X)<-nam
  X
 }
 
 fixY<-function(Y){
  #Reject non-factor-alikes
  if(!(is.factor(Y)||is.logical(Y)))
-  stop("Y must be either factor or logical.");
+  stop("Y must be either factor or logical.")
  if(any(is.na(Y)))
   stop("NAs not allowed in Y.")
- as.numeric(factor(Y))-1;
+ as.integer(factor(Y))-1L
 }
 
 #' Minimum Relevance Maximum Redundancy selection using the difference variant by H. Peng et al.
@@ -33,8 +39,8 @@ mRMR_D<-function(X,Y,k){
  X<-fixX(X); fixY(Y)->Y;
  k<-as.integer(k);
 
- .Call(C_mRMR,k,X,Y)->sel;
- colnames(X)[sel+1]
+ .Call(C_mRMR,k,X,Y)->ans
+ list(selection=colnames(X)[ans[[1]]+1],scores=ans[[2]])
 }
 
 #' Discrete version of the Conditional Mutual Information Maximisation selection, using the fast exact implementation by F. Fleuret.
@@ -48,8 +54,8 @@ CMIM<-function(X,Y,k){
  X<-fixX(X); fixY(Y)->Y;
  k<-as.integer(k);
 
- .Call(C_CMIM,k,X,Y)->sel;
- colnames(X)[sel+1]
+ .Call(C_CMIM,k,X,Y)->ans
+ list(selection=colnames(X)[ans[[1]]+1],scores=ans[[2]])
 }
 
 
@@ -64,9 +70,8 @@ JMI<-function(X,Y,k){
  X<-fixX(X); fixY(Y)->Y;
  k<-as.integer(k);
 
- .Call(C_JMI,k,X,Y)->sel;
- colnames(X)[sel+1]
-
+ .Call(C_JMI,k,X,Y)->ans
+ list(selection=colnames(X)[ans[[1]]+1],scores=ans[[2]])
 }
 
 #' Double Input Symmetrical Relevance selection.
@@ -80,8 +85,8 @@ DISR<-function(X,Y,k){
  X<-fixX(X); fixY(Y)->Y;
  k<-as.integer(k);
 
- .Call(C_DISR,k,X,Y)->sel;
- colnames(X)[sel+1]
+ .Call(C_DISR,k,X,Y)->ans
+ list(selection=colnames(X)[ans[[1]]+1],scores=ans[[2]])
 }
 
 #' Interaction Capping selction.
@@ -95,8 +100,8 @@ ICAP<-function(X,Y,k){
  X<-fixX(X); fixY(Y)->Y;
  k<-as.integer(k);
 
- .Call(C_ICAP,k,X,Y)->sel;
- colnames(X)[sel+1]
+ .Call(C_ICAP,k,X,Y)->ans
+ list(selection=colnames(X)[ans[[1]]+1],scores=ans[[2]])
 }
 
 
@@ -110,8 +115,8 @@ CondMI<-function(X,Y,k){
  X<-fixX(X); fixY(Y)->Y;
  k<-as.integer(k);
 
- .Call(C_CondMI,k,X,Y)->sel;
- colnames(X)[sel+1]
+ .Call(C_CondMI,k,X,Y)->ans
+ list(selection=colnames(X)[ans[[1]]+1],scores=ans[[2]])
 }
 
 #' MIM selection using a greedy forward search.
@@ -124,8 +129,8 @@ MIM<-function(X,Y,k){
  X<-fixX(X); fixY(Y)->Y;
  k<-as.integer(k);
 
- .Call(C_MIM,k,X,Y)->sel;
- colnames(X)[sel+1]
+ .Call(C_MIM,k,X,Y)->ans
+ list(selection=colnames(X)[ans[[1]]+1],scores=ans[[2]])
 }
 
 #' Generic selector using the Beta-Gamma space by Brown et al.
@@ -143,6 +148,6 @@ BetaGamma<-function(X,Y,k,beta,gamma){
 
  .Call(C_BetaGamma,
   k,X,Y,
-  as.numeric(c(beta[1],gamma[1])))->sel;
- colnames(X)[sel+1]
+  as.numeric(c(beta[1],gamma[1])))->ans
+ list(selection=colnames(X)[ans[[1]]+1],scores=ans[[2]])
 }

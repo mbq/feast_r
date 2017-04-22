@@ -14,9 +14,9 @@
 ** G. Brown, A. Pocock, M.-J. Zhao, M. Lujan
 ** Journal of Machine Learning Research (JMLR), 2012
 **
-** Please check www.cs.manchester.ac.uk/~gbrown/fstoolbox for updates.
+** Please check www.github.com/Craigacp/FEAST for updates.
 ** 
-** Copyright (c) 2010-2013, A. Pocock, G. Brown, The University of Manchester
+** Copyright (c) 2010-2017, A. Pocock, G. Brown, The University of Manchester
 ** All rights reserved.
 ** 
 ** Redistribution and use in source and binary forms, with or without modification,
@@ -55,14 +55,9 @@
   #define C_IMPLEMENTATION
   #include <stdio.h>
   #include <stdlib.h>
-  #define CALLOC_FUNC calloc
-  #define FREE_FUNC free
 #else
   #define MEX_IMPLEMENTATION
   #include "mex.h"
-  #define CALLOC_FUNC mxCalloc
-  #define FREE_FUNC mxFree
-  #define printf mexPrintf /*for Octave-3.2*/
 #endif
 
 #ifndef DBL_MAX

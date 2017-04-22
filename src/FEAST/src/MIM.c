@@ -4,7 +4,8 @@
 **
 ** Initial Version - 22/02/2014
 ** Updated - 22/02/2014 - Patched calloc.
-** Updated - 12/03/2016 - Changed initial value of maxMI to -1.0 to prevent segfaults when I(X;Y) = 0.0 for all X.
+**           12/03/2016 - Changed initial value of maxMI to -1.0 to prevent segfaults when I(X;Y) = 0.0 for all X.
+**           17/12/2016 - Added feature scores.
 **
 ** Author - Adam Pocock
 ** 
@@ -14,9 +15,9 @@
 ** G. Brown, A. Pocock, M.-J. Zhao, M. Lujan
 ** Journal of Machine Learning Research (JMLR), 2012
 **
-** Please check www.cs.manchester.ac.uk/~gbrown/fstoolbox for updates.
+** Please check www.github.com/Craigacp/FEAST for updates.
 ** 
-** Copyright (c) 2010-2014, A. Pocock, G. Brown, The University of Manchester
+** Copyright (c) 2010-2017, A. Pocock, G. Brown, The University of Manchester
 ** All rights reserved.
 ** 
 ** Redistribution and use in source and binary forms, with or without modification,
@@ -44,65 +45,47 @@
 **
 *******************************************************************************/
 
-#include "FSAlgorithms.h"
-#include "FSToolbox.h"
+#include "FEAST/FSAlgorithms.h"
+#include "FEAST/FSToolbox.h"
 
 /* MIToolbox includes */
-#include "ArrayOperations.h"
-#include "MutualInformation.h"
+#include "MIToolbox/ArrayOperations.h"
+#include "MIToolbox/MutualInformation.h"
 
-double* MIM(int k, int noOfSamples, int noOfFeatures, double *featureMatrix, double *classColumn, double *outputFeatures)
-{
-    double **feature2D = (double **) checkedCalloc(noOfFeatures,sizeof(double *));
-    
+uint* MIM(uint k, uint noOfSamples, uint noOfFeatures, uint **featureMatrix, uint *classColumn, uint *outputFeatures, double *featureScores) {
+    char *selectedFeatures = (char *) checkedCalloc(noOfFeatures,sizeof(char));
+
     /*holds the class MI values*/
-    double *classMI = (double *)checkedCalloc(noOfFeatures,sizeof(double));
-    char *selectedFeatures = (char *)checkedCalloc(noOfFeatures,sizeof(char));
+    double *classMI = (double *) checkedCalloc(noOfFeatures,sizeof(double));
+
     /*Changed to ensure it always picks a feature*/
     double maxMI = -1.0;
     int maxMICounter = -1;
-    int i,j;
-
-    /**********************************************************
-    ** this pulls out a pointer to the first sample of
-    ** each feature and stores it as a multidimensional array
-    ** so it can be indexed nicely
-    ***********************************************************/
-    for(j = 0; j < noOfFeatures; j++)
-    {
-        feature2D[j] = featureMatrix + (int)j*noOfSamples;
-    }
+    int i, j;
 
     /***********************************************************
-    ** SETUP COMPLETE
-    ** Algorithm starts here
-    ***********************************************************/
-    
-    for (i = 0; i < noOfFeatures; i++)
-    {
-        classMI[i] = calculateMutualInformation(feature2D[i], classColumn, noOfSamples);
-        
-        if (classMI[i] > maxMI)
-        {
+     ** SETUP COMPLETE
+     ** Algorithm starts here
+     ***********************************************************/
+
+    for (i = 0; i < noOfFeatures; i++) {
+        classMI[i] = calcMutualInformation(featureMatrix[i], classColumn, noOfSamples);
+
+        if (classMI[i] > maxMI) {
             maxMI = classMI[i];
             maxMICounter = i;
         }/*if bigger than current maximum*/
     }/*for noOfFeatures - filling classMI*/
-    
+
     selectedFeatures[maxMICounter] = 1;
     outputFeatures[0] = maxMICounter;
-    
-    /*************
-    ** Now we have populated the classMI array, and selected the highest
-    ** MI feature as the first output feature.
-    *************/
-    
+    featureScores[0] = maxMI;
+
     /**
      * Ideally this should use a quick sort, but it's still quicker than
      * calling BetaGamma with beta=0 and gamma=0
      */
-    for (i = 1; i < k; i++)
-    {
+    for (i = 1; i < k; i++) {
         maxMI = -1.0;
         for (j = 0; j < noOfFeatures; j++) {
             if (!selectedFeatures[j]) {
@@ -114,16 +97,49 @@ double* MIM(int k, int noOfSamples, int noOfFeatures, double *featureMatrix, dou
         }
         selectedFeatures[maxMICounter] = 1;
         outputFeatures[i] = maxMICounter;
+        featureScores[i] = maxMI;
     }/*for the number of features to select*/
-    
-  FREE_FUNC(classMI);
-  FREE_FUNC(feature2D);
-  FREE_FUNC(selectedFeatures);
-  
-  classMI = NULL;
-  feature2D = NULL;
-  selectedFeatures = NULL;
-  
-  return outputFeatures;
-}/*MIM(int,int,int,double[][],double[],double[])*/
 
+    FREE_FUNC(classMI);
+    FREE_FUNC(selectedFeatures);
+
+    classMI = NULL;
+    selectedFeatures = NULL;
+
+    return outputFeatures;
+}/*MIM(uint,uint,uint,uint[][],uint[],uint[],double[])*/
+
+double* discMIM(uint k, uint noOfSamples, uint noOfFeatures, double **featureMatrix, double *classColumn, double *outputFeatures, double *featureScores) {
+    uint *intFeatures = (uint *) checkedCalloc(noOfSamples*noOfFeatures,sizeof(uint));
+    uint *intClass = (uint *) checkedCalloc(noOfSamples,sizeof(uint));
+    uint *intOutputs = (uint *) checkedCalloc(k,sizeof(uint));
+
+    uint **intFeature2D = (uint**) checkedCalloc(noOfFeatures,sizeof(uint*));
+
+    int i;
+
+    for (i = 0; i < noOfFeatures; i++) {
+        intFeature2D[i] = intFeatures + i*noOfSamples;
+        normaliseArray(featureMatrix[i],intFeature2D[i],noOfSamples);
+    }
+
+    normaliseArray(classColumn,intClass,noOfSamples);
+
+    MIM(k, noOfSamples, noOfFeatures, intFeature2D, intClass, intOutputs, featureScores);
+
+    for (i = 0; i < k; i++) {
+        outputFeatures[i] = intOutputs[i];
+    }
+
+    FREE_FUNC(intFeatures);
+    FREE_FUNC(intClass);
+    FREE_FUNC(intOutputs);
+    FREE_FUNC(intFeature2D);
+
+    intFeatures = NULL;
+    intClass = NULL;
+    intOutputs = NULL;
+    intFeature2D = NULL;
+
+    return outputFeatures;
+}/*discMIM(int,int,int,double[][],double[],double[],double[])*/

@@ -1,1 +1,1 @@
-PKG_CFLAGS=-IMIToolbox/ -IFEAST/
+PKG_CFLAGS=-IMIToolbox/include/ -IFEAST/include/
