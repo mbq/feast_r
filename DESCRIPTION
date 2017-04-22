@@ -9,4 +9,4 @@ Description: An R interface to the FEAST feature selection library.
  Provides efficient implementations of several information-based filter methods, including JMI, MIM and mRMR.
 BugReports: https://github.com/mbq/praznik/issues
 URL: https://github.com/mbq/praznik
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
