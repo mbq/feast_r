@@ -2,6 +2,7 @@ Package: praznik
 Type: Package
 Title: An R Interface to the FEAST Feature Selection Library
 Version: 2.0.0
+Depends: infotheo
 Author: Miron B. Kursa, based on FEAST by A. Pocock and G. Brown
 Maintainer: Miron B. Kursa <M.Kursa@icm.edu.pl>
 License: BSD_3_clause + file LICENSE
