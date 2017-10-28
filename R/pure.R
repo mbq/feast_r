@@ -56,8 +56,9 @@ pureJMI<-function(X,Y,k=3){
  )
 }
 
-#Can't be verified
+#Verifiable with BetaGamma(Gamma=0,Beta=beta)
 pureMIFS<-function(X,Y,k=3,beta=1){
+ if(beta==0) return(pureMIM(X,Y,k))
  X<-data.frame(X)
  ascores<-apply(X,2,mutinformation,Y)/log(2)
  selection<-names(which.max(ascores))
@@ -69,7 +70,6 @@ pureMIFS<-function(X,Y,k=3,beta=1){
 
   apply(X,2,function(xx) mutinformation(x,factor(xx))/log(2))->scores
   ascores<-ascores-beta*scores
-  if(max(ascores)<=0) break
 
   selection<-c(selection,names(which.max(ascores)))
   fscores<-c(fscores,max(ascores))
@@ -80,7 +80,30 @@ pureMIFS<-function(X,Y,k=3,beta=1){
  )
 }
 
-#Works wrong
+pureBetaGamma<-function(X,Y,k=3,beta=1,gamma=1){
+ if(gamma==0) return(pureMIFS(X,Y,k,beta))
+ X<-data.frame(X)
+ ascores<-apply(X,2,mutinformation,Y)/log(2)
+ selection<-names(which.max(ascores))
+ fscores<-max(ascores)
+ for(e in 1:(k-1)){
+  factor(X[,tail(selection,1)])->x
+  ascores[colnames(X)!=tail(selection,1)]->ascores
+  X[,colnames(X)!=tail(selection,1)]->X
+
+  apply(X,2,function(xx) mutinformation(x,factor(xx))/log(2))->crossMi
+  apply(X,2,function(xx) condinformation(x,factor(xx),Y)/log(2))->crossCmi
+  ascores<-ascores-beta*crossMi+gamma*crossCmi
+
+  selection<-c(selection,names(which.max(ascores)))
+  fscores<-c(fscores,max(ascores))
+ }
+ list(
+  selection=selection,
+  scores=fscores
+ )
+}
+
 puremRMR_D<-function(X,Y,k=3){
  X<-data.frame(X)
  jscores<-apply(X,2,mutinformation,Y)/log(2)
@@ -95,9 +118,8 @@ puremRMR_D<-function(X,Y,k=3){
 
   apply(X,2,function(xx) mutinformation(x,factor(xx))/log(2))->scores
   bscores<-bscores+scores
-  ascores<-jscores-bscores/(e+1)
-  if(max(ascores)<=0) break
-
+  ascores<-jscores-bscores/e
+  
   selection<-c(selection,names(which.max(ascores)))
   fscores<-c(fscores,max(ascores))
  }
@@ -133,3 +155,5 @@ pureDISR<-function(X,Y,k=3){
  )
 }
 
+#Note: DISR, JMI and CondMI can stop at zero; methods with negative scores will not (mRMR_D can even jump through zero), and hence will always yield k elements.
+#Although, DISR and JMI are unlikely to do this.
