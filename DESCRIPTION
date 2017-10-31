@@ -11,3 +11,5 @@ Description: An R interface to the FEAST feature selection library.
 BugReports: https://github.com/mbq/praznik/issues
 URL: https://github.com/mbq/praznik
 RoxygenNote: 6.0.1
+Suggests: 
+    testthat
