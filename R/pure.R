@@ -3,7 +3,7 @@ pureMIM<-function(X,Y,k=3){
  sort(mim,decreasing=TRUE)[1:k]->ans
  list(
   selection=names(ans),
-  scores=ans
+  scores=setNames(ans,NULL)
  )
 }
 
@@ -18,17 +18,17 @@ pureCondMI<-function(X,Y,k=3){
  selection<-c()
  ascores<-c()
  for(e in 1:k){
-  sort(apply(X,2,condinformation,Y,S)/log(2),decreasing=TRUE)->scores
-  if(scores[1]==0) break
-  sel<-names(scores)[1]
+  apply(X,2,condinformation,Y,S)/log(2)->scores
+  if(max(scores)==0) break
+  sel<-names(which.max(scores))
   selection<-c(selection,sel)
-  ascores<-c(ascores,scores[1])
+  ascores<-c(ascores,max(scores))
   S<-mergef(S,factor(X[,sel]))
-  X[,colnames(X)!=sel]->X
+  X[,colnames(X)!=sel,drop=FALSE]->X
  }
  list(
   selection=selection,
-  scores=ascores
+  scores=setNames(ascores,NULL)
  )
 }
 
@@ -38,10 +38,10 @@ pureJMI<-function(X,Y,k=3){
  selection<-names(which.max(ascores))
  fscores<-max(ascores)
  scores<-rep(0,ncol(X))
- for(e in 1:(k-1)){
+ if(k>1) for(e in 1:(k-1)){
   factor(X[,tail(selection,1)])->x
   scores[colnames(X)!=tail(selection,1)]->scores
-  X[,colnames(X)!=tail(selection,1)]->X
+  X[,colnames(X)!=tail(selection,1),drop=FALSE]->X
   
   scores+apply(X,2,function(xx) mutinformation(mergef(x,factor(xx)),Y)/log(2))->scores
   
@@ -52,7 +52,7 @@ pureJMI<-function(X,Y,k=3){
  }
  list(
   selection=selection,
-  scores=fscores
+  scores=setNames(fscores,NULL)
  )
 }
 
@@ -63,10 +63,10 @@ pureMIFS<-function(X,Y,k=3,beta=1){
  ascores<-apply(X,2,mutinformation,Y)/log(2)
  selection<-names(which.max(ascores))
  fscores<-max(ascores)
- for(e in 1:(k-1)){
+ if(k>1) for(e in 1:(k-1)){
   factor(X[,tail(selection,1)])->x
   ascores[colnames(X)!=tail(selection,1)]->ascores
-  X[,colnames(X)!=tail(selection,1)]->X
+  X[,colnames(X)!=tail(selection,1),drop=FALSE]->X
 
   apply(X,2,function(xx) mutinformation(x,factor(xx))/log(2))->scores
   ascores<-ascores-beta*scores
@@ -86,10 +86,10 @@ pureBetaGamma<-function(X,Y,k=3,beta=1,gamma=1){
  ascores<-apply(X,2,mutinformation,Y)/log(2)
  selection<-names(which.max(ascores))
  fscores<-max(ascores)
- for(e in 1:(k-1)){
+ if(k>1) for(e in 1:(k-1)){
   factor(X[,tail(selection,1)])->x
   ascores[colnames(X)!=tail(selection,1)]->ascores
-  X[,colnames(X)!=tail(selection,1)]->X
+  X[,colnames(X)!=tail(selection,1),drop=FALSE]->X
 
   apply(X,2,function(xx) mutinformation(x,factor(xx))/log(2))->crossMi
   apply(X,2,function(xx) condinformation(x,factor(xx),Y)/log(2))->crossCmi
@@ -110,11 +110,11 @@ puremRMR_D<-function(X,Y,k=3){
  bscores<-rep(0,ncol(X))
  selection<-names(which.max(jscores))
  fscores<-max(jscores)
- for(e in 1:(k-1)){
+ if(k>1) for(e in 1:(k-1)){
   factor(X[,tail(selection,1)])->x
   jscores[colnames(X)!=tail(selection,1)]->jscores
   bscores[colnames(X)!=tail(selection,1)]->bscores
-  X[,colnames(X)!=tail(selection,1)]->X
+  X[,colnames(X)!=tail(selection,1),drop=FALSE]->X
 
   apply(X,2,function(xx) mutinformation(x,factor(xx))/log(2))->scores
   bscores<-bscores+scores
@@ -135,10 +135,10 @@ pureDISR<-function(X,Y,k=3){
  selection<-names(which.max(ascores))
  fscores<-max(ascores)
  rep(0,ncol(X))->scores
- for(e in 1:(k-1)){
+ if(k>1) for(e in 1:(k-1)){
   factor(X[,tail(selection,1)])->x
   scores[colnames(X)!=tail(selection,1)]->scores
-  X[,colnames(X)!=tail(selection,1)]->X
+  X[,colnames(X)!=tail(selection,1),drop=FALSE]->X
   
   scores+apply(X,2,function(xx) 
    mutinformation(mergef(x,factor(xx)),Y)/

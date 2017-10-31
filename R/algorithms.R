@@ -71,6 +71,9 @@ JMI<-function(X,Y,k){
  k<-as.integer(k);
 
  .Call(C_JMI,k,X,Y)->ans
+ ans[[2]]<-ans[[2]][ans[[1]]>=0]
+ ans[[1]]<-ans[[1]][ans[[1]]>=0]
+
  list(selection=colnames(X)[ans[[1]]+1],scores=ans[[2]])
 }
 
@@ -86,6 +89,9 @@ DISR<-function(X,Y,k){
  k<-as.integer(k);
 
  .Call(C_DISR,k,X,Y)->ans
+ ans[[2]]<-ans[[2]][ans[[1]]>=0]
+ ans[[1]]<-ans[[1]][ans[[1]]>=0]
+
  list(selection=colnames(X)[ans[[1]]+1],scores=ans[[2]])
 }
 
@@ -116,6 +122,9 @@ CondMI<-function(X,Y,k){
  k<-as.integer(k);
 
  .Call(C_CondMI,k,X,Y)->ans
+ ans[[2]]<-ans[[2]][ans[[1]]>=0]
+ ans[[1]]<-ans[[1]][ans[[1]]>=0]
+
  list(selection=colnames(X)[ans[[1]]+1],scores=ans[[2]])
 }
 

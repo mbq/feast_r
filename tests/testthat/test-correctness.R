@@ -75,3 +75,30 @@ test_that("Pure MIFS works like BetaGamma(g=0)",{
  expect_equal(pure$selection,feast$selection)
 })
 
+test_that("Pure MIM can pull all",{
+ pureMIM(X[,1:4],Y,k=4)
+})
+
+test_that("Pure CondMI can pull all",{
+ pureCondMI(X[,1:4],Y,k=4)
+})
+
+test_that("Pure JMI can pull all",{
+ pureJMI(X[,1:4],Y,k=4)
+})
+
+test_that("Pure MIFS can pull all",{
+ pureMIFS(X[,1:4],Y,k=4)
+})
+
+test_that("Pure BetaGamma can pull all",{
+ pureBetaGamma(X[,1:4],Y,k=4)
+})
+
+test_that("Pure mRMR_D can pull all",{
+ puremRMR_D(X[,1:4],Y,k=4)
+})
+
+test_that("Pure DISR can pull all",{
+ pureDISR(X[,1:4],Y,k=4)
+})
