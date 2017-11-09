@@ -1,4 +1,4 @@
-Package: praznik
+Package: feast
 Type: Package
 Title: An R Interface to the FEAST Feature Selection Library
 Version: 2.0.0
@@ -7,6 +7,6 @@ Maintainer: Miron B. Kursa <M.Kursa@icm.edu.pl>
 License: BSD_3_clause + file LICENSE
 Description: An R interface to the FEAST feature selection library.
  Provides efficient implementations of several information-based filter methods, including JMI, MIM and mRMR.
-BugReports: https://github.com/mbq/praznik/issues
-URL: https://github.com/mbq/praznik
+BugReports: https://github.com/mbq/feast_r/issues
+URL: https://github.com/mbq/feast_r
 RoxygenNote: 6.0.1
