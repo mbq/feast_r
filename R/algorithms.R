@@ -33,7 +33,7 @@ fixY<-function(Y){
 #' @template generic
 #' @examples
 #' mRMR_D(data.frame(lapply(iris[,-5],cut,10)),iris[,5],4)
-#' @useDynLib praznik C_mRMR
+#' @useDynLib feast C_mRMR
 #' @export
 mRMR_D<-function(X,Y,k){
  X<-fixX(X); fixY(Y)->Y;
@@ -48,7 +48,7 @@ mRMR_D<-function(X,Y,k){
 #' @template generic
 #' @examples
 #' CMIM(data.frame(lapply(iris[,-5],cut,10)),iris[,5],4)
-#' @useDynLib praznik C_CMIM
+#' @useDynLib feast C_CMIM
 #' @export
 CMIM<-function(X,Y,k){
  X<-fixX(X); fixY(Y)->Y;
@@ -64,7 +64,7 @@ CMIM<-function(X,Y,k){
 #' @template generic
 #' @examples
 #' JMI(data.frame(lapply(iris[,-5],cut,10)),iris[,5],4)
-#' @useDynLib praznik C_JMI
+#' @useDynLib feast C_JMI
 #' @export
 JMI<-function(X,Y,k){
  X<-fixX(X); fixY(Y)->Y;
@@ -79,7 +79,7 @@ JMI<-function(X,Y,k){
 #' @template generic
 #' @examples
 #' DISR(data.frame(lapply(iris[,-5],cut,10)),iris[,5],4)
-#' @useDynLib praznik C_DISR
+#' @useDynLib feast C_DISR
 #' @export
 DISR<-function(X,Y,k){
  X<-fixX(X); fixY(Y)->Y;
@@ -94,7 +94,7 @@ DISR<-function(X,Y,k){
 #' @template generic
 #' @examples
 #' ICAP(data.frame(lapply(iris[,-5],cut,10)),iris[,5],4)
-#' @useDynLib praznik C_ICAP
+#' @useDynLib feast C_ICAP
 #' @export
 ICAP<-function(X,Y,k){
  X<-fixX(X); fixY(Y)->Y;
@@ -109,7 +109,7 @@ ICAP<-function(X,Y,k){
 #' @template generic
 #' @examples
 #' CondMI(data.frame(lapply(iris[,-5],cut,10)),iris[,5],4)
-#' @useDynLib praznik C_CondMI
+#' @useDynLib feast C_CondMI
 #' @export
 CondMI<-function(X,Y,k){
  X<-fixX(X); fixY(Y)->Y;
@@ -123,7 +123,7 @@ CondMI<-function(X,Y,k){
 #' @template generic
 #' @examples
 #' MIM(data.frame(lapply(iris[,-5],cut,10)),iris[,5],4)
-#' @useDynLib praznik C_MIM
+#' @useDynLib feast C_MIM
 #' @export
 MIM<-function(X,Y,k){
  X<-fixX(X); fixY(Y)->Y;
@@ -140,7 +140,7 @@ MIM<-function(X,Y,k){
 #' @param gamma Gamma parameter; see the reference for details.
 #' @examples
 #' BetaGamma(data.frame(lapply(iris[,-5],cut,10)),iris[,5],4,0.1,0.1)
-#' @useDynLib praznik C_BetaGamma
+#' @useDynLib feast C_BetaGamma
 #' @export
 BetaGamma<-function(X,Y,k,beta,gamma){
  X<-fixX(X); fixY(Y)->Y;
